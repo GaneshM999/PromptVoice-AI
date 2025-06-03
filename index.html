@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+/>
+  <meta charset="UTF-8" />
+  <title>Ganesh AI </title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+      background-color: #f9f9f9;
+    }
+    #prompt {
+      width: 300px;
+      padding: 8px;
+      font-size: 1rem;
+    }
+    #response {
+      width: 100%;
+      height: 150px;
+      padding: 8px;
+      font-size: 1rem;
+      margin-top: 1rem;
+    }
+    button {
+      padding: 8px 12px;
+      font-size: 1rem;
+      margin-left: 8px;
+      cursor: pointer;
+    }
+  </style>
+  <script>
+    // Function to send prompt to backend and get response
+    function sendPrompt() {
+      const prompt = document.getElementById('prompt').value.trim();
+      const responseBox = document.getElementById('response');
+      const sendBtn = document.getElementById('Send');
+
+      if (!prompt) {
+        alert('Please enter a prompt or use voice input');
+        return;
+      }
+
+      sendBtn.disabled = true;
+      sendBtn.textContent = 'Sending...';
+
+      fetch('http://localhost:3000/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: prompt })
+      })
+      .then((res) => res.json())
+      .then((data) => {
+        responseBox.value = data.text || 'No response from Gemini API';
+      })
+      .catch((err) => {
+        responseBox.value = 'Error: ' + err.message;
+      })
+      .finally(() => {
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Send';
+      });
+    }
+
+    // Function to start voice recognition and auto-send prompt
+    function startVoiceInput() {
+      if (!('SpeechRecognition' in window) && !('webkitSpeechRecognition' in window)) {
+        alert('Sorry, your browser does not support Speech Recognition.');
+        return;
+      }
+
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.start();
+
+      recognition.onresult = (event) => {
+        const speechText = event.results[0][0].transcript;
+        document.getElementById('prompt').value = speechText;
+        sendPrompt();  // Auto send after voice recognition
+      };
+
+      recognition.onerror = (event) => {
+        alert('Voice recognition error: ' + event.error);
+      };
+    }
+  </script>
+</head>
+<body>
+  <h2>Ganesh AI</h2>
+  <div>
+    <label for="prompt">Enter Prompt (or use voice):</label><br />
+    <input type="text" id="prompt" placeholder="Ask me anything..." />
+   <button onclick="startVoiceInput()"><i class="fas fa-microphone"></i></button>
+
+  </div>
+  <br />
+  <button id="Send" onclick="sendPrompt()">Send</button>
+  <br /><br />
+  <label for="response">Response:</label><br />
+  <textarea id="response" readonly></textarea>
+</body>
+</html>
