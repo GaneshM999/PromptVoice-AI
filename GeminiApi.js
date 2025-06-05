@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config();
 
 const app = express();
 const PORT = 3000;
@@ -14,7 +15,7 @@ let ai;
     const { GoogleGenAI } = await import('@google/genai');
 
     ai = new GoogleGenAI({
-        apiKey: "AIzaSyB53oe5R1h5H7mVPjelBv-UKbACLsn9_Qg"
+        apiKey: process.env.GOOGLE_API_KEY
     });
 
     // Handle GET request at root URL
